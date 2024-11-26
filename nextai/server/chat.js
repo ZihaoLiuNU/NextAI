@@ -10,7 +10,7 @@ import { PDFLoader } from "langchain/document_loaders/fs/pdf";
 // NOTE: change this default filePath to any of your default file name
 const chat = async (
   query,
-  filePath = "./uploads/How_to_Speak_Bot_Prompt_Patterns_INFO_7375.pdf"
+  filePath = "./uploads/Zihao Liu - Resume 24100902.pdf"
 ) => {
   // step 1:
   const loader = new PDFLoader(filePath);

@@ -18,7 +18,7 @@ const storage = multer.diskStorage({
     cb(null, file.originalname);
   },
 });
-const upload = multer({ storage: storage });
+const upload = multer({ storage });
 
 const PORT = 5001;
 
@@ -31,7 +31,7 @@ app.post("/upload", upload.single("file"), async (req, res) => {
 });
 
 app.get("/chat", async (req, res) => {
-  const resp = await chat(filePath, req.query.question); // Pass the file path to your main function
+  const resp = await chat(req.query.question, filePath); // Pass the file path to your main function
   res.send(resp.text);
 });
 
