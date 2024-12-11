@@ -44,17 +44,18 @@ const chat = async (
 
   // step 5: qa w/ customzie the prompt
   const model = new ChatOpenAI({
-    modelName: "gpt-3.5-turbo",
+    modelName: "ft:gpt-3.5-turbo-0125:personal::AdMeDaFm",
     openAIApiKey: process.env.REACT_APP_OPENAI_API_KEY,
   });
 
-  const template = `Use the following pieces of context to answer the question at the end.
-If you don't know the answer, just say that you don't know, don't try to make up an answer.
-Use three sentences maximum and keep the answer as concise as possible.
+  `You are an expert in tailoring resumes to specific job descriptions and user inputs.
+Using the context provided, craft a detailed, professional, and personalized resume that aligns closely with the job description.
+Leverage the dataset provided by the fine-tuned model and use your expertise to generate creative and tailored content.
+If the context or data does not provide enough information, respond with "I don't know" and suggest additional details or clarifications to proceed.
 
 {context}
-Question: {question}
-Helpful Answer:`;
+Job Description or Question: {question}
+Tailored Resume or Answer:`;
 
   const chain = RetrievalQAChain.fromLLM(model, vectorStore.asRetriever(), {
     prompt: PromptTemplate.fromTemplate(template),
