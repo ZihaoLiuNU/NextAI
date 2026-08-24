@@ -51,19 +51,20 @@ Implemented in Node.js with Express.
 
 #### Key Files:
 
-- **server.js**: Sets up endpoints for file uploads (`/upload`) and chat interactions (`/chat`).
+- **server.js**: Sets up endpoints for file uploads (`/upload`) and chat interactions (`/chat`), and keeps each client's uploaded file and vector store isolated in an in-memory session map keyed by a client-generated `sessionId`.
 - **chat.js**: Handles processing of uploaded PDFs and answering user queries using LangChain components.
 
 #### Workflow:
 
-1. The user uploads a PDF via the frontend (**PdfUploader**), which is sent to the server using Multer for file handling.
-2. Upon a query, the server processes the uploaded PDF by:
+1. The client generates a `sessionId` on load and sends it with every request.
+2. The user uploads a PDF via the frontend (**PdfUploader**), which is sent to the server using Multer for file handling and stored under that session.
+3. Upon a query, the server looks up the session's file and, the first time a question is asked about it, processes the PDF by:
    - Loading the document with **PDFLoader**.
    - Splitting text into chunks using **RecursiveCharacterTextSplitter**.
    - Generating embeddings via **OpenAIEmbeddings**.
-   - Storing embeddings in **MemoryVectorStore**.
+   - Storing embeddings in **MemoryVectorStore** (cached on the session so later questions about the same file skip this step).
    - Retrieving relevant context with **RetrievalQAChain** and answering using **ChatOpenAI**.
-3. The server returns the response, which is displayed to the user in the frontend UI.
+4. The server returns the response, which is displayed to the user in the frontend UI.
 
 ---
 
@@ -77,7 +78,7 @@ Implemented in Node.js with Express.
 ### Accuracy:
 
 - Depends on the quality of embeddings and LangChain's retrieval mechanism.
-- OpenAI GPT-3.5-turbo provides reliable and concise answers.
+- Uses OpenAI's **gpt-4o** for answering and **text-embedding-3-small** for embeddings.
 
 ### Scalability:
 
@@ -102,6 +103,10 @@ Implemented in Node.js with Express.
 ### Challenge: Ensuring smooth file upload and error handling.
 
 **Solution**: Leveraged Ant Design's **Upload** component and Multer for robust file handling.
+
+### Challenge: Concurrent users overwrote each other's uploaded document and chat context.
+
+**Solution**: The server originally tracked the "current" uploaded file in a single global variable, so a second user (or a second browser tab) uploading a file silently replaced the file/context every other user was querying against. Fixed by keying server-side state (file path + cached vector store) off a `sessionId` the client generates and sends with every request, and namespacing uploaded filenames by `sessionId` to avoid collisions on disk. This also let the vector store be cached per session instead of being rebuilt (re-load, re-split, re-embed) on every single question.
 
 ---
 
