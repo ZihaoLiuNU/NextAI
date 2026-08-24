@@ -7,8 +7,12 @@ const { Dragger } = Upload;
 
 const DOMAIN = "http://localhost:5001";
 
-const uploadToBackend = async (file) => {
+const uploadToBackend = async (file, sessionId) => {
   const formData = new FormData();
+  // sessionId must be appended before the file field so the server's
+  // multer storage callback (which runs while the file part streams in)
+  // already has it available on req.body.
+  formData.append("sessionId", sessionId);
   formData.append("file", file);
   try {
     const response = await axios.post(`${DOMAIN}/upload`, formData, {
@@ -23,36 +27,36 @@ const uploadToBackend = async (file) => {
   }
 };
 
-const attributes = {
-  name: "file",
-  multiple: true,
-  customRequest: async ({ file, onSuccess, onError }) => {
-    const response = await uploadToBackend(file);
-    if (response && response.status === 200) {
-      // Handle success
-      onSuccess(response.data);
-    } else {
-      // Handle error
-      onError(new Error("Upload failed"));
-    }
-  },
-  onChange(info) {
-    const { status } = info.file;
-    if (status !== "uploading") {
-      console.log(info.file, info.fileList);
-    }
-    if (status === "done") {
-      message.success(`${info.file.name} file uploaded successfully.`);
-    } else if (status === "error") {
-      message.error(`${info.file.name} file upload failed.`);
-    }
-  },
-  onDrop(e) {
-    console.log("Dropped files", e.dataTransfer.files);
-  },
-};
+const PdfUploader = ({ sessionId }) => {
+  const attributes = {
+    name: "file",
+    multiple: true,
+    customRequest: async ({ file, onSuccess, onError }) => {
+      const response = await uploadToBackend(file, sessionId);
+      if (response && response.status === 200) {
+        // Handle success
+        onSuccess(response.data);
+      } else {
+        // Handle error
+        onError(new Error("Upload failed"));
+      }
+    },
+    onChange(info) {
+      const { status } = info.file;
+      if (status !== "uploading") {
+        console.log(info.file, info.fileList);
+      }
+      if (status === "done") {
+        message.success(`${info.file.name} file uploaded successfully.`);
+      } else if (status === "error") {
+        message.error(`${info.file.name} file upload failed.`);
+      }
+    },
+    onDrop(e) {
+      console.log("Dropped files", e.dataTransfer.files);
+    },
+  };
 
-const PdfUploader = () => {
   return (
     <Dragger {...attributes}>
       <p className="ant-upload-drag-icon">

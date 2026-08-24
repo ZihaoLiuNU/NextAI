@@ -17,7 +17,7 @@ const searchContainer = {
 };
 
 const ChatComponent = (props) => {
-  const { handleResp, isLoading, setIsLoading } = props;
+  const { handleResp, isLoading, setIsLoading, sessionId } = props;
   // Define a state variable to keep track of the search value
   const [searchValue, setSearchValue] = useState("");
   const [isChatModeOn, setIsChatModeOn] = useState(false);
@@ -131,6 +131,7 @@ const ChatComponent = (props) => {
       const response = await axios.get(`${DOMAIN}/chat`, {
         params: {
           question,
+          sessionId,
         },
       });
       handleResp(question, response.data);

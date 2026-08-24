@@ -25,6 +25,10 @@ const renderQAStyle = {
 const App = () => {
   const [conversation, setConversation] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
+  // One sessionId per browser tab/load, sent with every upload/chat request
+  // so the server can keep each client's uploaded file and vector store
+  // separate instead of sharing one global state across all users.
+  const [sessionId] = useState(() => crypto.randomUUID());
   const { Header, Content } = Layout;
   const { Title } = Typography;
 
@@ -45,7 +49,7 @@ const App = () => {
         </Header>
         <Content style={{ width: "80%", margin: "auto" }}>
           <div style={pdfUploaderStyle}>
-            <PdfUploader />
+            <PdfUploader sessionId={sessionId} />
           </div>
 
           <br />
@@ -59,6 +63,7 @@ const App = () => {
         </Content>
         <div style={chatComponentStyle}>
           <ChatComponent
+            sessionId={sessionId}
             handleResp={handleResp}
             isLoading={isLoading}
             setIsLoading={setIsLoading}
